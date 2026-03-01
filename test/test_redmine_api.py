@@ -119,3 +119,16 @@ def test_current_user():
     data = response.json()
     assert "user" in data
     assert "id" in data["user"]
+
+
+def test_no_api_key():
+    endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
+    response = requests.get(endpoint, verify=False)
+    assert response.status_code == 401
+
+
+def test_wrong_api_key():
+    endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
+    headers = {"X-Redmine-API-Key": "wrong-key"}
+    response = requests.get(endpoint, headers=headers, verify=False)
+    assert response.status_code == 401
