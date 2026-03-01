@@ -3,6 +3,7 @@
 
 import subprocess
 import sys
+import requests
 
 
 APPLICATION = "OAuthTest"
@@ -16,6 +17,10 @@ API_KEY = "testAPIkeyTHROWAWAY123456"
 
 REDMINE_URL_HTTP = "http://localhost"
 REDMINE_URL_HTTPS = "https://localhost"
+
+PROJECT_NAME = "Test Project"
+PROJECT_IDENTIFIER = "test-project"
+REPO_PATH = "/bogus/test-repo"
 
 
 MYSQL = ["docker", "compose", "exec", "-T", "db", "mariadb",
@@ -34,8 +39,26 @@ def inject_setting(key: str, value: str):
     sql(f"INSERT INTO settings (name, value, updated_on) VALUES ('{key}', '{value}', NOW()) ON DUPLICATE KEY UPDATE value = '{value}';")
 
 
-def inject_into_db():
+def create_project():
+    response = requests.post(
+        f"{REDMINE_URL_HTTP}/projects.json",
+        headers={"X-Redmine-API-Key": API_KEY, "Content-Type": "application/json"},
+        json={"project": {"name": PROJECT_NAME, "identifier": PROJECT_IDENTIFIER, "is_public": True}},
+    )
+    if response.status_code != 201:
+        print(f"Failed to create project: {response.text}", file=sys.stderr)
+        sys.exit(1)
+    project_id = response.json()["project"]["id"]
+    print(f"OK: Created project '{PROJECT_NAME}' (id={project_id})")
+    return project_id
 
+
+def create_repository(project_id: int):
+    sql(f"INSERT INTO repositories (project_id, url, type, identifier, is_default, created_on) "
+        f"VALUES ({project_id}, '{REPO_PATH}', 'Repository::Git', 'main', 1, NOW());")
+
+
+def inject_into_db():
     # admin user shall no longer change password on first login. it is kept with admin/admin.
     sql("UPDATE users SET must_change_passwd = 0 WHERE login = 'admin';")
 
@@ -52,6 +75,10 @@ def inject_into_db():
     # we create a Oauth2 (doorkeeper) Application.
     # this is the provider/upstream side
     sql(f"INSERT INTO oauth_applications (id, name, uid, secret, redirect_uri, scopes, confidential, created_at, updated_at) VALUES (1, '{APPLICATION}', '{UID}', '{SECRET_HASH}', '{REDIRECT_URI}', '{SCOPES}', 1, NOW(), NOW());")
+
+    # create a test project and repository
+    project_id = create_project()
+    create_repository(project_id)
 
     print("Bootstrap complete.")
 
