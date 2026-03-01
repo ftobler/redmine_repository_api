@@ -14,6 +14,15 @@ Returns all accessible projects and their repositories.
 curl -H "X-Redmine-API-Key: <your_api_key>" https://<redmine>/repositories.json
 ```
 
+**Query parameters:**
+
+| Parameter   | Description                                               | Example                         |
+|-------------|-----------------------------------------------------------|---------------------------------|
+| `type`      | Filter repositories by SCM type (case-insensitive)        | `?type=git`, `?type=subversion` |
+| `non_empty` | Omit projects with no repositories (after type filtering) | `?non_empty=1`                  |
+
+Parameters can be combined: `?type=git&non_empty=1`
+
 **Response:**
 ```json
 {

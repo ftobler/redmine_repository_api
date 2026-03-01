@@ -41,6 +41,76 @@ def test_project_c_has_no_repos():
     assert len(repos) == 0, f"Expected 0 repositories, got {len(repos)}"
 
 
+def test_filter_by_type_git():
+    endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
+    headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
+    response = requests.get(endpoint, headers=headers, params={"type": "git"}, verify=False)
+    assert response.status_code == 200
+
+    projects = {p["name"]: p for p in response.json()["projects"]}
+
+    # Project A: only the git repo survives, svn is filtered out
+    assert len(projects["Project A"]["repositories"]) == 1
+    assert projects["Project A"]["repositories"][0]["path"] == "/bogus/repo-a1"
+
+    # Project B: git repo still present
+    assert len(projects["Project B"]["repositories"]) == 1
+
+    # Project C: still present, just empty
+    assert "Project C" in projects
+    assert len(projects["Project C"]["repositories"]) == 0
+
+    # No svn repos anywhere
+    for p in projects.values():
+        for r in p["repositories"]:
+            assert r["type"] == "Repository::Git"
+
+
+def test_filter_by_type_subversion():
+    endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
+    headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
+    response = requests.get(endpoint, headers=headers, params={"type": "subversion"}, verify=False)
+    assert response.status_code == 200
+
+    projects = {p["name"]: p for p in response.json()["projects"]}
+
+    # Project A: only the svn repo survives
+    assert len(projects["Project A"]["repositories"]) == 1
+    assert projects["Project A"]["repositories"][0]["path"] == "/bogus/repo-a2"
+
+    # Project B and C: no svn repos
+    assert len(projects["Project B"]["repositories"]) == 0
+    assert len(projects["Project C"]["repositories"]) == 0
+
+
+def test_filter_non_empty():
+    endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
+    headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
+    response = requests.get(endpoint, headers=headers, params={"non_empty": "1"}, verify=False)
+    assert response.status_code == 200
+
+    projects = {p["name"]: p for p in response.json()["projects"]}
+
+    assert "Project A" in projects
+    assert "Project B" in projects
+    assert "Project C" not in projects, "Project C has no repos and should be excluded"
+
+
+def test_filter_by_type_and_non_empty():
+    endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
+    headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
+    response = requests.get(endpoint, headers=headers, params={"type": "subversion", "non_empty": "1"}, verify=False)
+    assert response.status_code == 200
+
+    projects = {p["name"]: p for p in response.json()["projects"]}
+
+    # Only Project A has a subversion repo
+    assert "Project A" in projects
+    assert len(projects["Project A"]["repositories"]) == 1
+    assert "Project B" not in projects
+    assert "Project C" not in projects
+
+
 def test_current_user():
     endpoint = f"{bootstrap.REDMINE_URL_HTTP}/users/current.json"
     headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
