@@ -24,7 +24,7 @@ def test_current_user():
     headers = {"X-Redmine-API-Key": api_key}
     print(headers, endpoint)
 
-    response = requests.get(endpoint, headers=headers)
+    response = requests.get(endpoint, headers=headers, verify=False)
 
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
 
