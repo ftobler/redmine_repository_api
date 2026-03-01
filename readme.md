@@ -64,6 +64,8 @@ Customize API keys and OAuth settings in `test/bootstrap.py`.
 
 ## Installation
 
+Need Redmine 5 or higher.
+
 1. Copy the plugin into `plugins/redmine_repository_api`
 2. Run:
    bundle install
