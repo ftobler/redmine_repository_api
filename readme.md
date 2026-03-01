@@ -8,15 +8,16 @@ Exposes a REST API endpoint listing all projects and their repositories that the
 
 ### `GET /repositories.json`
 
-Returns all accessible projects and their repositories.
+Returns all accessible projects and their repositories. **May include server internal path**
 
-**Authentication:** Redmine API key via header or query param. REST API must be enabled.
+**Authentication:**  
+Redmine API key via header or query param. REST API must be enabled.
 
-**Permission:** The calling user must have the `use_repository_api` permission.
+**Permission:**  
+The calling user must have the `use_repository_api` permission.
 
-```
-curl -H "X-Redmine-API-Key: <your_api_key>" https://<redmine>/repositories.json
-```
+**example call:**  
+`curl -H "X-Redmine-API-Key: <your_api_key>" https://<redmine>/repositories.json?type=git`
 
 **Query parameters:**
 
@@ -24,8 +25,6 @@ curl -H "X-Redmine-API-Key: <your_api_key>" https://<redmine>/repositories.json
 |-------------|-----------------------------------------------------------|---------------------------------|
 | `type`      | Filter repositories by SCM type (case-insensitive)        | `?type=git`, `?type=subversion` |
 | `non_empty` | Omit projects with no repositories (after type filtering) | `?non_empty=1`                  |
-
-Parameters can be combined: `?type=git&non_empty=1`
 
 **Response:**
 ```json
