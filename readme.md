@@ -1,5 +1,7 @@
 # Redmine Repository API Plugin
 
+[![Integration Tests](https://github.com/ftobler/redmine_repository_api/actions/workflows/check.yml/badge.svg)](https://github.com/ftobler/redmine_repository_api/actions/workflows/check.yml)
+
 Exposes a REST API endpoint listing all projects and their repositories that the authenticated user has permission to view.
 
 ## API
