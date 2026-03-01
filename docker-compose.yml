@@ -30,7 +30,7 @@ services:
       REDMINE_DB_DATABASE: redmine
     volumes:
       # mount this repo inside the plugin directory
-      - .:/usr/src/redmine/plugins/redmine_plugin_ci_template
+      - .:/usr/src/redmine/plugins/redmine_repository_api
       # No host volume mapping for throwaway usage
     depends_on:
       db:
