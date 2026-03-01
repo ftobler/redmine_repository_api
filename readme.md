@@ -8,9 +8,9 @@ Exposes a REST API endpoint listing all projects and their repositories that the
 
 Returns all accessible projects and their repositories.
 
-**Authentication:** Redmine API key via header or query param. REST API must be enabled in *Administration > Settings > API*.
+**Authentication:** Redmine API key via header or query param. REST API must be enabled.
 
-**Permission:** The calling user must have the `use_repository_api` permission. Grant it per role in *Administration > Roles and Permissions*. Administrators have it by default.
+**Permission:** The calling user must have the `use_repository_api` permission.
 
 ```
 curl -H "X-Redmine-API-Key: <your_api_key>" https://<redmine>/repositories.json
