@@ -23,13 +23,7 @@ jobs:
         run: pip install -r test/requirements.txt
 
       - name: Wait for Redmine to be ready
-        run: |
-          echo "Waiting for Redmine..."
-          for i in $(seq 1 36); do
-            curl -sf http://localhost/ && echo "Redmine is up!" && break
-            echo "Attempt $i/36, sleeping 5s..."
-            sleep 5
-          done
+        run: python test/wait_docker_ready.py
 
       - name: Bootstrap Redmine
         run: python test/bootstrap.py
