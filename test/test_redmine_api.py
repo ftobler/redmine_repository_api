@@ -13,6 +13,10 @@ def get_projects():
 
 
 def test_project_a_has_two_repos():
+    """
+    Verify a project with multiple repos returns all of them with correct type per repo.
+    {"projects": [{"name": "Project A", "repositories": [{"type": "Repository::Git", ...}, {"type": "Repository::Subversion", ...}]}]}
+    """
     projects = get_projects()
     assert "Project A" in projects, "Project A not found in response"
     repos = projects["Project A"]["repositories"]
@@ -26,6 +30,10 @@ def test_project_a_has_two_repos():
 
 
 def test_project_b_has_one_repo():
+    """
+    Verify a project with a single repo returns exactly one entry.
+    {"projects": [{"name": "Project B", "repositories": [{"type": "Repository::Git", ...}]}]}
+    """
     projects = get_projects()
     assert "Project B" in projects, "Project B not found in response"
     repos = projects["Project B"]["repositories"]
@@ -35,6 +43,10 @@ def test_project_b_has_one_repo():
 
 
 def test_project_c_has_no_repos():
+    """
+    Verify a project with no repos is still included in the response, just with an empty list.
+    {"projects": [{"name": "Project C", "repositories": []}]}
+    """
     projects = get_projects()
     assert "Project C" in projects, "Project C not found in response"
     repos = projects["Project C"]["repositories"]
@@ -42,6 +54,10 @@ def test_project_c_has_no_repos():
 
 
 def test_filter_by_type_git():
+    """
+    Verify ?type=git filters out non-git repos but keeps all projects in the response.
+    {"projects": [{"name": "Project A", "repositories": [{"type": "Repository::Git"}]}, {"name": "Project C", "repositories": []}]}
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
     response = requests.get(endpoint, headers=headers, params={"type": "git"}, verify=False)
@@ -67,6 +83,10 @@ def test_filter_by_type_git():
 
 
 def test_filter_by_type_subversion():
+    """
+    Verify ?type=subversion filters out non-svn repos, leaving projects with no matching repos empty.
+    {"projects": [{"name": "Project A", "repositories": [{"type": "Repository::Subversion"}]}, {"name": "Project B", "repositories": []}]}
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
     response = requests.get(endpoint, headers=headers, params={"type": "subversion"}, verify=False)
@@ -84,6 +104,10 @@ def test_filter_by_type_subversion():
 
 
 def test_filter_non_empty():
+    """
+    Verify ?non_empty=1 drops projects that have no repositories.
+    {"projects": [{"name": "Project A", ...}, {"name": "Project B", ...}]} - Project C absent
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
     response = requests.get(endpoint, headers=headers, params={"non_empty": "1"}, verify=False)
@@ -97,6 +121,10 @@ def test_filter_non_empty():
 
 
 def test_filter_by_type_and_non_empty():
+    """
+    Verify combining ?type and ?non_empty: type filter runs first, then empty projects are dropped.
+    {"projects": [{"name": "Project A", "repositories": [{"type": "Repository::Subversion"}]}]} - B and C absent
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
     response = requests.get(endpoint, headers=headers, params={"type": "subversion", "non_empty": "1"}, verify=False)
@@ -112,6 +140,10 @@ def test_filter_by_type_and_non_empty():
 
 
 def test_current_user():
+    """
+    Verify the Redmine core API is reachable and the admin API key resolves to a valid user.
+    {"user": {"id": 1, ...}}
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTP}/users/current.json"
     headers = {"X-Redmine-API-Key": bootstrap.API_KEY}
     response = requests.get(endpoint, headers=headers)
@@ -122,6 +154,10 @@ def test_current_user():
 
 
 def test_user_with_permission():
+    """
+    Verify a user with the use_repository_api permission can access the endpoint.
+    {"projects": [...]}
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     headers = {"X-Redmine-API-Key": bootstrap.API_USER_KEY}
     response = requests.get(endpoint, headers=headers, verify=False)
@@ -129,6 +165,10 @@ def test_user_with_permission():
 
 
 def test_user_without_permission():
+    """
+    Verify a user without the use_repository_api permission is rejected.
+    403
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     headers = {"X-Redmine-API-Key": bootstrap.NO_PERM_USER_KEY}
     response = requests.get(endpoint, headers=headers, verify=False)
@@ -136,12 +176,20 @@ def test_user_without_permission():
 
 
 def test_no_api_key():
+    """
+    Verify requests with no API key are rejected.
+    401
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     response = requests.get(endpoint, verify=False)
     assert response.status_code == 401
 
 
 def test_wrong_api_key():
+    """
+    Verify requests with a wrong API key are rejected.
+    401
+    """
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     headers = {"X-Redmine-API-Key": "wrong-key"}
     response = requests.get(endpoint, headers=headers, verify=False)
