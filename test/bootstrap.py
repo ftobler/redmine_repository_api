@@ -18,9 +18,29 @@ API_KEY = "testAPIkeyTHROWAWAY123456"
 REDMINE_URL_HTTP = "http://localhost"
 REDMINE_URL_HTTPS = "https://localhost"
 
-PROJECT_NAME = "Test Project"
-PROJECT_IDENTIFIER = "test-project"
-REPO_PATH = "/bogus/test-repo"
+# Test projects and their repositories
+PROJECTS = [
+    {
+        "name": "Project A",
+        "identifier": "project-a",
+        "repositories": [
+            {"path": "/bogus/repo-a1", "type": "Repository::Git",        "identifier": "repo-a1"},
+            {"path": "/bogus/repo-a2", "type": "Repository::Subversion", "identifier": "repo-a2"},
+        ],
+    },
+    {
+        "name": "Project B",
+        "identifier": "project-b",
+        "repositories": [
+            {"path": "/bogus/repo-b1", "type": "Repository::Git", "identifier": "repo-b1"},
+        ],
+    },
+    {
+        "name": "Project C",
+        "identifier": "project-c",
+        "repositories": [],
+    },
+]
 
 
 MYSQL = ["docker", "compose", "exec", "-T", "db", "mariadb",
@@ -39,23 +59,23 @@ def inject_setting(key: str, value: str):
     sql(f"INSERT INTO settings (name, value, updated_on) VALUES ('{key}', '{value}', NOW()) ON DUPLICATE KEY UPDATE value = '{value}';")
 
 
-def create_project():
+def create_project(name: str, identifier: str) -> int:
     response = requests.post(
         f"{REDMINE_URL_HTTP}/projects.json",
         headers={"X-Redmine-API-Key": API_KEY, "Content-Type": "application/json"},
-        json={"project": {"name": PROJECT_NAME, "identifier": PROJECT_IDENTIFIER, "is_public": True}},
+        json={"project": {"name": name, "identifier": identifier, "is_public": True}},
     )
     if response.status_code != 201:
-        print(f"Failed to create project: {response.text}", file=sys.stderr)
+        print(f"Failed to create project '{name}': {response.text}", file=sys.stderr)
         sys.exit(1)
     project_id = response.json()["project"]["id"]
-    print(f"OK: Created project '{PROJECT_NAME}' (id={project_id})")
+    print(f"OK: Created project '{name}' (id={project_id})")
     return project_id
 
 
-def create_repository(project_id: int):
+def create_repository(project_id: int, path: str, repo_type: str, identifier: str, is_default: bool):
     sql(f"INSERT INTO repositories (project_id, url, type, identifier, is_default, created_on) "
-        f"VALUES ({project_id}, '{REPO_PATH}', 'Repository::Git', 'main', 1, NOW());")
+        f"VALUES ({project_id}, '{path}', '{repo_type}', '{identifier}', {1 if is_default else 0}, NOW());")
 
 
 def inject_into_db():
@@ -76,9 +96,11 @@ def inject_into_db():
     # this is the provider/upstream side
     sql(f"INSERT INTO oauth_applications (id, name, uid, secret, redirect_uri, scopes, confidential, created_at, updated_at) VALUES (1, '{APPLICATION}', '{UID}', '{SECRET_HASH}', '{REDIRECT_URI}', '{SCOPES}', 1, NOW(), NOW());")
 
-    # create a test project and repository
-    project_id = create_project()
-    create_repository(project_id)
+    # create test projects and repositories
+    for project in PROJECTS:
+        project_id = create_project(project["name"], project["identifier"])
+        for i, repo in enumerate(project["repositories"]):
+            create_repository(project_id, repo["path"], repo["type"], repo["identifier"], is_default=(i == 0))
 
     print("Bootstrap complete.")
 
