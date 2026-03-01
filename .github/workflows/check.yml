@@ -6,6 +6,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        redmine: ['5', '6.1', '6', 'latest']
+
+    name: Redmine ${{ matrix.redmine }}
+
+    env:
+      REDMINE_VERSION: ${{ matrix.redmine }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,7 +27,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.x'
 
       - name: Install test dependencies
         run: pip install -r test/requirements.txt

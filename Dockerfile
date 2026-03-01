@@ -1,4 +1,5 @@
-FROM redmine:6.1
+ARG REDMINE_VERSION=6.1
+FROM redmine:${REDMINE_VERSION}
 
 # this just demonstrates how to add custom gems in the docker-compose infrastructure.
 

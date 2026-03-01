@@ -19,8 +19,10 @@ services:
     # No host volume mapping for throwaway usage
 
   redmine:
-    build: .
-    # image: redmine:6.1
+    build:
+      context: .
+      args:
+        REDMINE_VERSION: ${REDMINE_VERSION:-6.1}
     ports:
       - "80:3000"  # expose on port 80 on host
     environment:
