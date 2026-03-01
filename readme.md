@@ -61,3 +61,11 @@ pytest test/
 ```
 
 Customize API keys and OAuth settings in `test/bootstrap.py`.
+
+## Installation
+
+1. Copy the plugin into `plugins/redmine_repository_api`
+2. Run:
+   bundle install
+   bin/rails redmine:plugins:migrate RAILS_ENV=production
+3. Restart Redmine
