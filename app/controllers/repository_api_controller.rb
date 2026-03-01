@@ -1,5 +1,6 @@
 class RepositoryApiController < ApplicationController
   before_action :require_login
+  before_action :authorize_global
   accept_api_auth :project_repositories
 
   def project_repositories

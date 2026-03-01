@@ -8,4 +8,8 @@ Redmine::Plugin.register :redmine_repository_api do
   url 'https://github.com/ftobler/redmine_repository_api'
   version '0.0.1'
   requires_redmine :version_or_higher => '6.1.0'
+
+  permission :use_repository_api,
+             { repository_api: [:project_repositories] },
+             global: true
 end

@@ -121,6 +121,20 @@ def test_current_user():
     assert "id" in data["user"]
 
 
+def test_user_with_permission():
+    endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
+    headers = {"X-Redmine-API-Key": bootstrap.API_USER_KEY}
+    response = requests.get(endpoint, headers=headers, verify=False)
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
+
+
+def test_user_without_permission():
+    endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
+    headers = {"X-Redmine-API-Key": bootstrap.NO_PERM_USER_KEY}
+    response = requests.get(endpoint, headers=headers, verify=False)
+    assert response.status_code == 403, f"Expected 403, got {response.status_code}: {response.text}"
+
+
 def test_no_api_key():
     endpoint = f"{bootstrap.REDMINE_URL_HTTPS}/repositories.json"
     response = requests.get(endpoint, verify=False)
